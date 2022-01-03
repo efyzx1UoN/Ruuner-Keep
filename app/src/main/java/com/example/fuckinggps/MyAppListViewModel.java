@@ -15,9 +15,6 @@ public class MyAppListViewModel extends Application {
         list=new ArrayList<>();
     }
 
-    public static void add(RecordsViewModel recordsViewModel){
-        list.add(recordsViewModel);
-    }
     public static List<RecordsViewModel> getList(){
         return list;
     }

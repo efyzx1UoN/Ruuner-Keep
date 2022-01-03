@@ -20,12 +20,15 @@ public class Records {
 
     private int duration;
 
-    public Records(Double Longitude,Double Latitude,Float distance,Float speed,int duration){
+    private long time;
+
+    public Records(Double Longitude,Double Latitude,Float distance,Float speed,int duration, long time){
         this.Latitude=Latitude;
         this.Longitude=Longitude;
         this.distance=distance;
         this.speed=speed;
         this.duration=duration;
+        this.time = time;
     }
 
     public Records() {
@@ -78,5 +81,26 @@ public class Records {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public long getTime() {
+        return time;
+    }
+
+    public void setTime(long time) {
+        this.time = time;
+    }
+
+    @Override
+    public String toString() {
+        return "Records{" +
+                "id=" + id +
+                ", Longitude=" + Longitude +
+                ", Latitude=" + Latitude +
+                ", distance=" + distance +
+                ", speed=" + speed +
+                ", duration=" + duration +
+                ", time=" + time +
+                '}';
     }
 }

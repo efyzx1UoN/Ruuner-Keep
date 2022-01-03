@@ -52,11 +52,11 @@ public class MainActivity2 extends AppCompatActivity {
     private LocationManager locationManager;
     private  String provider;
     MyAppListViewModel application;
-    List<RecordsViewModel> list;
     private  LocationListener locationListener;
     private  int i;
     private int last_time=0;
     private int cur_time=0;
+    private long timeMillis = System.currentTimeMillis();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,13 +65,10 @@ public class MainActivity2 extends AppCompatActivity {
 
         show=findViewById(R.id.main_et_show);
         application = (MyAppListViewModel) getApplication();
-        list= application.getList();
 
 //        viewModel=new ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory
 //                .getInstance(this.getApplication())).get(RecordsViewModel.class);
-        ViewModelProvider viewModelProvider = new ViewModelProvider(this);
-        RecordsViewModel userViewModel = viewModelProvider.get(RecordsViewModel.class);
-        viewModel=userViewModel;
+        viewModel = new ViewModelProvider(this).get(RecordsViewModel.class);
 
          locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
          provider = LocationManager.GPS_PROVIDER;
@@ -109,7 +106,6 @@ public class MainActivity2 extends AppCompatActivity {
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                viewModel.delete();
                 AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
                 builder.setTitle("Ready?");
                 builder.setMessage("Go After 3 Seconds");
@@ -161,8 +157,8 @@ public class MainActivity2 extends AppCompatActivity {
                              sb.append(distance+"Miter");
                              sb.append("\nSpeed：");
                              sb.append(speed+"M/S");
-                             viewModel.insert(new Records(longitude,latitude,distance,
-                                     speed,chronometerSeconds));
+                             viewModel.insert(new Records(longitude, latitude, distance,
+                                     speed, chronometerSeconds, timeMillis));
                              Log.d("Seconds",chronometerSeconds+"");
                              show.setText(sb.toString());
                              Log.d("movement", new String(sb));
@@ -186,7 +182,6 @@ public class MainActivity2 extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 chronometer.stop();
-                list.add(viewModel);
                 Toast.makeText(MainActivity2.this,R.string.toastMessage,
                         Toast.LENGTH_LONG).show();
                 try {
