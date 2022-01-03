@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">GPSViews</string>
+    <string name="toastMessage">Records Added</string>
+</resources>
