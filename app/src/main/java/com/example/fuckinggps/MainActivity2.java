@@ -1,6 +1,8 @@
 package com.example.fuckinggps;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.lifecycle.ViewModel;
@@ -11,17 +13,22 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.Application;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
@@ -42,36 +49,38 @@ public class MainActivity2 extends AppCompatActivity {
     private Chronometer chronometer;
     private Button startButton;
     private Button finishButton;
+    private Button stopButton;
     private long recordingTime = 0;
-    private static Location last_location;
-    private static Location cur_location;
-    private  float distance =0;
+    private float distance =0;
+    private float goal_distance =(float) Integer.MAX_VALUE;
     private float speed=0;
-    private RecordsViewModel viewModel;
     private boolean started;
     private LocationManager locationManager;
     private  String provider;
-    MyAppListViewModel application;
-    private  LocationListener locationListener;
-    private  int i;
-    private int last_time=0;
-    private int cur_time=0;
-    private long timeMillis = System.currentTimeMillis();
+    private LocationService.ServiceBinder locationService;
 
+
+    private ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            locationService = (LocationService.ServiceBinder) iBinder;
+            // if currently tracking then enable stopButton and disable startButton
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            locationService = null;
+        }
+    };
+    private MyReceiver receiver;
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main2);
-
         show=findViewById(R.id.main_et_show);
-        application = (MyAppListViewModel) getApplication();
-
-//        viewModel=new ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory
-//                .getInstance(this.getApplication())).get(RecordsViewModel.class);
-        viewModel = new ViewModelProvider(this).get(RecordsViewModel.class);
-
-         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-         provider = LocationManager.GPS_PROVIDER;
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        provider = LocationManager.GPS_PROVIDER;
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
         {
             // TODO: Consider calling
@@ -81,13 +90,38 @@ public class MainActivity2 extends AppCompatActivity {
             //                                          int[] grantResults)
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
-            return;
+            String[] strings =
+                    {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
+            ActivityCompat.requestPermissions(this, strings, 1);
         }
         initial();
-        i=0;
+        Intent intent = new Intent(this, LocationService.class);
+        MainActivity2.this.startForegroundService(intent);
+        //startService(new Intent(this, LocationService.class));
+        bindService(
+                new Intent(this, LocationService.class), serviceConnection, Context.BIND_AUTO_CREATE);
+        receiver =new MyReceiver();
+        IntentFilter filter=new IntentFilter();
+        filter.addAction("com.example.locationService");
+        MainActivity2.this.registerReceiver(receiver,filter);
         chronometer =(Chronometer) findViewById(R.id.chronometer);
         SetListeners();
-
+    }
+    public  class MyReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Bundle bundle = intent.getExtras();
+            distance= bundle.getFloat("distance");
+            speed = bundle.getFloat("speed");
+            StringBuffer sb = new StringBuffer();
+            sb.append("Current location info：");
+            sb.append("\nDistance：");
+            sb.append(distance+"Meter");
+            sb.append("\nSpeed：");
+            sb.append(speed+"KM/H");
+            show.setText(sb.toString());
+            Log.e("TAG", "onReceive: " + distance + "     " + speed);
+        }
     }
 
     private void initial(){
@@ -106,75 +140,44 @@ public class MainActivity2 extends AppCompatActivity {
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
-                builder.setTitle("Ready?");
-                builder.setMessage("Go After 3 Seconds");
-                builder.setCancelable(true);
-                final AlertDialog dlg = builder.create();
-                dlg.show();
-                final Timer t = new Timer();
-                t.schedule(new TimerTask() {
-                    public void run() {
-                        dlg.cancel();
-                        chronometer.setBase(SystemClock.elapsedRealtime()-recordingTime);
-                        chronometer.start();
-                    }
-                }, 3000);
-
-                if(locationListener==null){
-                     locationListener= new LocationListener() {
-                         @Override
-                         public void onLocationChanged(@NonNull Location location) {
-                             float v ;
-                             float m_distance = 0;
-                             float m_speed=0;
-                             int chronometerSeconds = getChronometerSeconds(chronometer);
-                             if (!started) {
-                                 last_location = cur_location = location;
-                                 started=true;
-                                 v = last_location.distanceTo(cur_location);
-                                 distance += v;
-                                 last_time=cur_time=0;
-                             } else {
-                                 cur_location=location;
-                                 v = last_location.distanceTo(cur_location);
-                                 distance += v;
-//                                 String d = new DecimalFormat("###,###,###.##").format(distance);
-//                                 m_distance = Float.parseFloat(d);
-                                 cur_time=chronometerSeconds;
-                                 speed=v/(cur_time-last_time);
-//                                 String a = new DecimalFormat("###,###,###.#").format(speed);
-//                                 m_speed=Float.parseFloat(a);
-                                 Log.d("speed",m_speed+"");
-                             }
-                             StringBuffer sb = new StringBuffer();
-                             sb.append("Current location info：");
-                             double longitude = location.getLongitude();
-                             double latitude = location.getLatitude();
-                             sb.append("\nDistance：");
-                             last_location=cur_location;
-                             last_time=cur_time;
-                             sb.append(distance+"Miter");
-                             sb.append("\nSpeed：");
-                             sb.append(speed+"M/S");
-                             viewModel.insert(new Records(longitude, latitude, distance,
-                                     speed, chronometerSeconds, timeMillis));
-                             Log.d("Seconds",chronometerSeconds+"");
-                             show.setText(sb.toString());
-                             Log.d("movement", new String(sb));
-                             i++;
-                             Log.d("Thread---------non_static_i",Thread.currentThread().toString()+","+"i:"+i);
-                         }
-                     };
-                 }
-                try {
-                    locationManager.requestLocationUpdates(provider,
-                            1000, // minimum time interval between updates
-                            5, // minimum distance between updates, in metres
-                            locationListener);
-                } catch (SecurityException e) {
-                    Log.d("comp3018", e.toString());
-                }
+                   if(!started){
+                    AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
+                    builder.setTitle("Ready?");
+                    builder.setMessage("Go After 3 Seconds");
+                    builder.setCancelable(true);
+                    final AlertDialog dlg = builder.create();
+                    dlg.show();
+                    final Timer t = new Timer();
+                    t.schedule(new TimerTask() {
+                        public void run() {
+                            dlg.cancel();
+                            chronometer.setBase(SystemClock.elapsedRealtime()-recordingTime);
+                            chronometer.start();
+                        }
+                    }, 3000);
+                       locationService.StartTiming();
+                   }else{
+                       chronometer.setBase(SystemClock.elapsedRealtime()-recordingTime);
+                       chronometer.start();
+                   }
+                   locationService.StartedRunning();
+                  // locationService.notification();
+            }
+        });
+        stopButton=findViewById(R.id.stopButtonId);
+        stopButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                chronometer.stop();
+                recordingTime = SystemClock.elapsedRealtime()- chronometer.getBase();
+                started=true;
+                StringBuffer sb = new StringBuffer();
+                sb.append("Current location info：");
+                sb.append("\nDistance：");
+                sb.append(distance+"Meter");
+                sb.append("\nSpeed：");
+                sb.append(0+"KM/H");
+                show.setText(sb.toString());
             }
         });
         finishButton=findViewById(R.id.finishButtonId);
@@ -182,13 +185,16 @@ public class MainActivity2 extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 chronometer.stop();
+                int chronometerSeconds = getChronometerSeconds(chronometer);
+                locationService.duration=chronometerSeconds;
+                toFinish();
+                locationService.FinishRunning();
+                if(receiver!=null){
+                    unregisterReceiver(receiver);
+                    receiver=null;
+                }
                 Toast.makeText(MainActivity2.this,R.string.toastMessage,
                         Toast.LENGTH_LONG).show();
-                try {
-                    toFinish();
-                } catch (Throwable throwable) {
-                    throwable.printStackTrace();
-                }
             }
         });
     }
@@ -215,10 +221,6 @@ public class MainActivity2 extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         Log.d("MainActivity2---Destroy","destroy");
-        if(locationListener!=null){
-            locationManager.removeUpdates(locationListener);
-            locationListener=null;
-        }
     }
 
     @Override
@@ -229,12 +231,8 @@ public class MainActivity2 extends AppCompatActivity {
 
     private void toFinish(){
         finish();
-        if(locationListener!=null){
-            locationManager.removeUpdates(locationListener);
-            locationListener=null;
-        }
-
     }
+
 
 
     public  static int getChronometerSeconds(Chronometer cmt) {

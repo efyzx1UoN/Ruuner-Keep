@@ -1,4 +1,9 @@
 <resources>
-    <string name="app_name">GPSViews</string>
+    <string name="app_name">Runner</string>
     <string name="toastMessage">Records Added</string>
+    <string name="Goal">Goal Achieved</string>
+    <string name="Goal_Set">goal has setted</string>
+    <string name="channel_name">Runner</string>
+    <string name="channel_description">Runner is using Location</string>
+    <string name="records_delete">Records Deleted</string>
 </resources>

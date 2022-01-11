@@ -21,6 +21,7 @@ import android.widget.EditText;
 public class MainActivity extends AppCompatActivity {
     private Button button;
     private Button button1;
+    private Button button2;
     private boolean started;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d("MainActivity---onCreate","onCreate");
         button=findViewById(R.id.button);
         button1=findViewById(R.id.button2);
+        button2=findViewById(R.id.button3);
         SetListeners();
     }
 
@@ -57,6 +59,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, MainActivity3.class);
+                startActivity(intent);
+            }
+        });
+        findViewById(R.id.button3).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, MainActivity_Statistic.class);
                 startActivity(intent);
             }
         });

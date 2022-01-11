@@ -1,11 +1,14 @@
 package com.example.fuckinggps;
 
+import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RatingBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,22 +17,31 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class MainActivity3 extends AppCompatActivity {
+    private String TAG = "MainActivity3";
+    private Map<Long, List<Records>> recordsMap;
+    private RecordsViewModel viewModel;
+    private RecyclerView recyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main3);
-        RecordsViewModel viewModel = new ViewModelProvider(this).get(RecordsViewModel.class);
+        viewModel = new ViewModelProvider(this).get(RecordsViewModel.class);
         List<Records> recordsList = viewModel.getAllRecords();
-        Map<Long, List<Records>> recordsMap = new HashMap<>();
+        recordsMap = new ConcurrentHashMap<>();
         // 分组
         for (Records records : recordsList) {
             Long time = records.getTime();
@@ -42,61 +54,98 @@ public class MainActivity3 extends AppCompatActivity {
                 recordsMap.put(records.getTime(), list);
             }
         }
-        List<TotalRecords> totalRecordsList = new ArrayList<>();
+        MapChecked(recordsMap);
+        List<LastRecords> totalRecordsList = new CopyOnWriteArrayList<>();
         for (List<Records> list : recordsMap.values()) {
             list.sort(Comparator.comparingInt(Records::getDuration));
-            float totalDistance = 0f;
-            for (Records records : list) {
-                totalDistance += records.getDistance();
-            }
-            totalRecordsList.add(new TotalRecords(list.get(list.size() - 1), totalDistance));
+            totalRecordsList.add(new LastRecords(list.get(list.size() - 1)));
         }
-        RecyclerView recyclerView = findViewById(R.id.recyclerView);
+        for (LastRecords lastRecords : totalRecordsList) {
+            if (lastRecords.lastRecord.getDistance() == 0) {
+                totalRecordsList.remove(lastRecords);
+            } else if (lastRecords.lastRecord.getDuration() == 0) {
+                totalRecordsList.remove(lastRecords);
+            }
+
+        }
+        recyclerView = findViewById(R.id.recyclerView);
         recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(new TotalRecordsAdapter(totalRecordsList, records -> {
-            Toast.makeText(this, "" + records.totalDistance, Toast.LENGTH_SHORT).show();
+        recyclerView.setAdapter(new LastRecordsAdapter(viewModel, totalRecordsList, records -> {
+            Intent intent = new Intent(MainActivity3.this, MainActivity_detail.class);
+            long time = records.lastRecord.getTime();
+            intent.putExtra("time", time);
+            startActivity(intent);
         }));
+
     }
 
-    private static class TotalRecords {
-        private final Records lastRecord;
-        private final float totalDistance;
-
-        public TotalRecords(Records lastRecord, float totalDistance) {
-            this.lastRecord = lastRecord;
-            this.totalDistance = totalDistance;
+    private void MapChecked(Map<Long, List<Records>> recordsMap) {
+        Set<Long> longs = recordsMap.keySet();
+        for (Long l : longs) {
+            if (recordsMap.get(l).size() == 1) {
+                recordsMap.remove(l);
+            }
         }
     }
 
-    private static class TotalRecordsAdapter extends RecyclerView.Adapter<TotalRecordsViewHolder> {
+    private static class LastRecords {
+        private final Records lastRecord;
 
-        private List<TotalRecords> items;
+        public LastRecords(Records lastRecord) {
+            this.lastRecord = lastRecord;
+
+        }
+    }
+
+    private static class LastRecordsAdapter extends RecyclerView.Adapter<LastRecordsViewHolder> {
+        private RecordsViewModel viewModel;
+        private List<LastRecords> items;
         private OnItemClickListener onItemClickListener;
 
-        public TotalRecordsAdapter(List<TotalRecords> items, OnItemClickListener onItemClickListener) {
+        public LastRecordsAdapter(RecordsViewModel viewModel, List<LastRecords> items, OnItemClickListener onItemClickListener) {
+            this.viewModel = viewModel;
             this.items = items;
             this.onItemClickListener = onItemClickListener;
         }
 
         @NonNull
         @Override
-        public TotalRecordsViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_total_records, parent, false);
-            TotalRecordsViewHolder viewHolder = new TotalRecordsViewHolder(itemView);
+        public LastRecordsViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.activity3_row, parent, false);
+            LastRecordsViewHolder viewHolder = new LastRecordsViewHolder(itemView);
+
             viewHolder.itemView.setOnClickListener(v -> {
                 if (onItemClickListener != null) {
                     int position = viewHolder.getAdapterPosition();
                     onItemClickListener.onItemClick(items.get(position));
                 }
             });
+
+            viewHolder.bar.setOnRatingBarChangeListener((ratingBar, rating, fromUser) -> {
+                int position = viewHolder.getAdapterPosition();
+                LastRecords item = items.get(position);
+                item.lastRecord.setRating(rating);
+                viewModel.update(item.lastRecord);
+            });
+
             return viewHolder;
         }
 
+        @SuppressLint("SetTextI18n")
         @Override
-        public void onBindViewHolder(@NonNull TotalRecordsViewHolder holder, int position) {
-            TotalRecords records = items.get(position);
-            holder.distance.setText(String.valueOf(records.totalDistance));
+        public void onBindViewHolder(@NonNull LastRecordsViewHolder holder, int position) {
+            LastRecords records = items.get(position);
+            SimpleDateFormat dateformat = new SimpleDateFormat("yyyy-MM-dd");
+            String dateStr = dateformat.format(records.lastRecord.getTime());
+            String t = String.valueOf(records.lastRecord.getDuration());
+            String d = new DecimalFormat("###,###,###").format(records.lastRecord.getDistance());
+            String s = new DecimalFormat("###,###,###.#").format(records.lastRecord.getSpeed());
+            holder.date.setText(dateStr);
+            holder.distance.setText("Distance :" + " " + d + " Meter");
+            holder.time.setText("Time :" + " " + t + " S");
+            holder.speed.setText("AverageSpeed :" + " " + s + " M/S");
+            holder.bar.setRating(records.lastRecord.getRating());
         }
 
         @Override
@@ -105,17 +154,93 @@ public class MainActivity3 extends AppCompatActivity {
         }
     }
 
-    private static class TotalRecordsViewHolder extends RecyclerView.ViewHolder {
+    private static class LastRecordsViewHolder extends RecyclerView.ViewHolder {
 
         private final TextView distance;
+        private final TextView time;
+        private final TextView speed;
+        private final TextView date;
+        private RatingBar bar;
 
-        private TotalRecordsViewHolder(@NonNull View itemView) {
+        private LastRecordsViewHolder(@NonNull View itemView) {
             super(itemView);
-            distance = itemView.findViewById(R.id.distance);
+            distance = itemView.findViewById(R.id.text_distance);
+            time = itemView.findViewById(R.id.text_time);
+            speed = itemView.findViewById(R.id.text_speed);
+            bar = itemView.findViewById(R.id.niceRatingBar);
+            date = itemView.findViewById(R.id.text_date);
         }
     }
 
     private interface OnItemClickListener {
-        void onItemClick(TotalRecords records);
+        void onItemClick(LastRecords records);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d(TAG, "stop");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d(TAG, "Pause");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Log.d(TAG, "Restart");
+        RecordsViewModel viewModel = new ViewModelProvider(this).get(RecordsViewModel.class);
+        List<Records> recordsList = viewModel.getAllNewRecords();
+        recordsMap = new ConcurrentHashMap<>();
+        // 分组
+        for (Records records : recordsList) {
+            Long time = records.getTime();
+            if (recordsMap.containsKey(time)) {
+                List<Records> list = Objects.requireNonNull(recordsMap.get(time));
+                list.add(records);
+            } else {
+                List<Records> list = new ArrayList<>();
+                list.add(records);
+                recordsMap.put(records.getTime(), list);
+            }
+        }
+        MapChecked(recordsMap);
+        List<LastRecords> totalRecordsList = new CopyOnWriteArrayList<>();
+        for (List<Records> list : recordsMap.values()) {
+            list.sort(Comparator.comparingInt(Records::getDuration));
+
+            totalRecordsList.add(new LastRecords(list.get(list.size() - 1)));
+        }
+        for (LastRecords lastRecords : totalRecordsList) {
+            if (lastRecords.lastRecord.getDistance() == 0) {
+                totalRecordsList.remove(lastRecords);
+            } else if (lastRecords.lastRecord.getDuration() == 0) {
+                totalRecordsList.remove(lastRecords);
+            }
+
+        }
+
+        // recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
+        // recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(new LastRecordsAdapter(viewModel, totalRecordsList, records -> {
+            Intent intent = new Intent(MainActivity3.this, MainActivity_detail.class);
+            long time = records.lastRecord.getTime();
+            intent.putExtra("time", time);
+            startActivity(intent);
+        }));
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "Destroy");
     }
 }

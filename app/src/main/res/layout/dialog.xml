@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content">
-    <TextView android:text="Please pay attention to the weather and surrounding environment while using the App!"
+    <TextView android:text="Please pay attention to the weathers and surrounding environment while using the App!"
         android:id="@+id/TextView01"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>

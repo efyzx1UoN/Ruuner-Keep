@@ -22,13 +22,17 @@ public class Records {
 
     private long time;
 
-    public Records(Double Longitude,Double Latitude,Float distance,Float speed,int duration, long time){
+    private float rating;
+
+
+    public Records(Double Longitude,Double Latitude,Float distance,Float speed,int duration, long time, float rating) {
         this.Latitude=Latitude;
         this.Longitude=Longitude;
         this.distance=distance;
         this.speed=speed;
         this.duration=duration;
         this.time = time;
+        this.rating = rating;
     }
 
     public Records() {
@@ -55,9 +59,13 @@ public class Records {
         this.speed=speed;
     }
 
+
+
     public int getDuration() {
         return duration;
     }
+
+
 
     public Double getLongitude() {
         return Longitude;
@@ -89,6 +97,14 @@ public class Records {
 
     public void setTime(long time) {
         this.time = time;
+    }
+
+    public float getRating() {
+        return rating;
+    }
+
+    public void setRating(float rating) {
+        this.rating = rating;
     }
 
     @Override

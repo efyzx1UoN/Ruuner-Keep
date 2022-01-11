@@ -8,14 +8,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MyAppListViewModel extends Application {
-    private static  List<RecordsViewModel> list;
+    private static  List<Float> list;
     @Override
     public void onCreate() {
         super.onCreate();
         list=new ArrayList<>();
     }
 
-    public static List<RecordsViewModel> getList(){
+    public static List<Float> getList(){
         return list;
     }
 }

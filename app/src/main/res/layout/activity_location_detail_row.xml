@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_margin="2dp"
+    android:layout_width="match_parent"
+    android:layout_height="80dp">
+
+    <LinearLayout
+
+        android:layout_marginLeft="2dp"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/text_longitude"
+            android:layout_width="match_parent"
+            android:typeface="monospace"
+            android:layout_height="40dp"/>
+        <TextView
+            android:id="@+id/text_latitude"
+            android:layout_width="match_parent"
+            android:typeface="monospace"
+            android:layout_height="40dp"/>
+
+    </LinearLayout>
+
+
+
+
+</LinearLayout>
