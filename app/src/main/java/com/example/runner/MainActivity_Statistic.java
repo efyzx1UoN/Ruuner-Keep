@@ -1,4 +1,4 @@
-package com.example.fuckinggps;
+package com.example.runner;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -8,12 +8,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.annotation.SuppressLint;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
 
 
 
@@ -65,8 +65,6 @@ public class MainActivity_Statistic extends AppCompatActivity {
         for (Map.Entry<Long, List<Records>> entry: entries ) {
             if (dateCheck(entry.getKey()).equals(date)){
                  t_list.add(new TodayRecords(entry.getValue().get(entry.getValue().size()-1)));
-//                 t_distance += entry.getValue().get(entry.getValue().size()-1).getDistance();
-//                 t_f_distance=Math.max(t_f_distance,entry.getValue().get(entry.getValue().size()-1).getDistance());
             }
         }
         for (TodayRecords todayRecords: t_list) {
@@ -82,23 +80,17 @@ public class MainActivity_Statistic extends AppCompatActivity {
         }
         if(t_distance==0){
             total_distance.setText("Total Distance of today is: " +0+" Meter");
-            farthest_distance.setText("Farthest Distance of today is: "+0+" Meter");
+            farthest_distance.setText("Longest Distance of today is: "+0+" Meter");
         }else{
             String d = new DecimalFormat("###,###,###").format(t_distance);
             String f = new DecimalFormat("###,###,###").format(t_f_distance);
             total_distance.setText("Total Distance of today is: " +d+" Meter");
-            farthest_distance.setText("Farthest Distance of today is: "+f+" Meter");
+            farthest_distance.setText("Longest Distance of today is: "+f+" Meter");
         }
-//        String d = new DecimalFormat("###,###,###").format(t_distance);
-//        String f = new DecimalFormat("###,###,###").format(t_f_distance);
-//        total_distance.setText("Total Distance of today is : " +d+" Meter");
-//        farthest_distance.setText("Farthest Distance of today is : "+f+" Meter");
-
         RecyclerView recyclerView = findViewById(R.id.recyclerView5);
         recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(new TodayRecordsAdapter(t_list));
-
     }
     private static class TodayRecordsAdapter extends RecyclerView.Adapter<TodayRecordsViewHolder> {
 
@@ -130,7 +122,6 @@ public class MainActivity_Statistic extends AppCompatActivity {
             String dateStr = dateformat.format(records.t_records.getTime());
             String t = String.valueOf(records.t_records.getDuration());
             String d = new DecimalFormat("###,###,###").format(records.t_records.getDistance());
-            //String s = String.valueOf(records.lastRecord.getSpeed());
             String s = new DecimalFormat("###,###,###.#").format(records.t_records.getSpeed());
             holder.s_date.setText(dateStr);
             holder.s_distance.setText("Distance :"+" "+d+" Meter");

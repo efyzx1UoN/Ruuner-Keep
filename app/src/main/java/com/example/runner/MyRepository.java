@@ -1,8 +1,6 @@
-package com.example.fuckinggps;
+package com.example.runner;
 
 import android.app.Application;
-
-import androidx.lifecycle.LiveData;
 
 import java.util.List;
 

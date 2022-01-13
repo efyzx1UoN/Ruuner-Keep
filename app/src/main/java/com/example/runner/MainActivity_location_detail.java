@@ -1,4 +1,4 @@
-package com.example.fuckinggps;
+package com.example.runner;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,8 +17,7 @@ import android.widget.TextView;
 
 
 
-import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
+
 import java.util.ArrayList;
 import java.util.List;
 

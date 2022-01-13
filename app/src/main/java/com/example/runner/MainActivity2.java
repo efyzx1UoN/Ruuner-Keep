@@ -1,46 +1,33 @@
-package com.example.fuckinggps;
+package com.example.runner;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.lifecycle.ViewModel;
-import androidx.lifecycle.ViewModelProvider;
 
 import android.Manifest;
-import android.app.Activity;
-import android.app.ActivityManager;
 import android.app.AlertDialog;
-import android.app.Application;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.graphics.drawable.BitmapDrawable;
-import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Chronometer;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.math.BigDecimal;
-import java.text.DecimalFormat;
-import java.util.List;
+
+
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -52,7 +39,6 @@ public class MainActivity2 extends AppCompatActivity {
     private Button stopButton;
     private long recordingTime = 0;
     private float distance =0;
-    private float goal_distance =(float) Integer.MAX_VALUE;
     private float speed=0;
     private boolean started;
     private LocationManager locationManager;
@@ -97,7 +83,6 @@ public class MainActivity2 extends AppCompatActivity {
         initial();
         Intent intent = new Intent(this, LocationService.class);
         MainActivity2.this.startForegroundService(intent);
-        //startService(new Intent(this, LocationService.class));
         bindService(
                 new Intent(this, LocationService.class), serviceConnection, Context.BIND_AUTO_CREATE);
         receiver =new MyReceiver();
@@ -116,7 +101,7 @@ public class MainActivity2 extends AppCompatActivity {
             StringBuffer sb = new StringBuffer();
             sb.append("Current location info：");
             sb.append("\nDistance：");
-            sb.append(distance+"Meter");
+            sb.append(distance+"Meters");
             sb.append("\nSpeed：");
             sb.append(speed+"KM/H");
             show.setText(sb.toString());
@@ -138,6 +123,7 @@ public class MainActivity2 extends AppCompatActivity {
 
         startButton=findViewById(R.id.startButtonId);
         startButton.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void onClick(View v) {
                    if(!started){
@@ -161,9 +147,11 @@ public class MainActivity2 extends AppCompatActivity {
                        chronometer.start();
                    }
                    locationService.StartedRunning();
-                  // locationService.notification();
+                   startButton.setEnabled(false);
+                   stopButton.setEnabled(true);
             }
         });
+
         stopButton=findViewById(R.id.stopButtonId);
         stopButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -174,27 +162,45 @@ public class MainActivity2 extends AppCompatActivity {
                 StringBuffer sb = new StringBuffer();
                 sb.append("Current location info：");
                 sb.append("\nDistance：");
-                sb.append(distance+"Meter");
+                sb.append(distance+"Meters");
                 sb.append("\nSpeed：");
                 sb.append(0+"KM/H");
                 show.setText(sb.toString());
+                startButton.setEnabled(true);
             }
         });
+
         finishButton=findViewById(R.id.finishButtonId);
         finishButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 chronometer.stop();
                 int chronometerSeconds = getChronometerSeconds(chronometer);
-                locationService.duration=chronometerSeconds;
-                toFinish();
-                locationService.FinishRunning();
-                if(receiver!=null){
-                    unregisterReceiver(receiver);
-                    receiver=null;
-                }
-                Toast.makeText(MainActivity2.this,R.string.toastMessage,
-                        Toast.LENGTH_LONG).show();
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity2.this);
+                builder.setTitle("Running Info");
+                builder.setMessage("Are you sure to finish recording then exit ?");
+
+                // add the buttons
+                builder.setPositiveButton("Continue", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        locationService.duration=chronometerSeconds;
+                        locationService.FinishRunning();
+                        if(receiver!=null){
+                            unregisterReceiver(receiver);
+                            receiver=null;
+                        }
+                        Toast.makeText(MainActivity2.this,R.string.toastMessage,
+                                Toast.LENGTH_LONG).show();
+                        toFinish();
+                    }
+                });
+                builder.setNegativeButton("Cancel", null);
+
+                // create and show the alert dialog
+                AlertDialog dialog = builder.create();
+                dialog.show();
+
             }
         });
     }

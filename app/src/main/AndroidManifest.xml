@@ -1,38 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.fuckinggps">
+    package="com.example.runner">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <application
-        android:name=".MyAppListViewModel"
+        android:name="com.example.runner.MyAppListViewModel"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.FuckingGPS">
+        android:theme="@style/Theme.Runner">
         <service
-            android:name=".LocationService"
+            android:name="com.example.runner.LocationService"
             android:enabled="true"
             android:exported="true"></service>
 
         <activity
-            android:name=".MainActivity_Statistic"
+            android:name="com.example.runner.MainActivity_Statistic"
             android:exported="false" />
         <activity
-            android:name=".MainActivity_location_detail"
+            android:name="com.example.runner.MainActivity_location_detail"
             android:exported="false" />
         <activity
-            android:name=".MainActivity_detail"
+            android:name="com.example.runner.MainActivity_detail"
             android:exported="false" />
 
         <activity
-            android:name=".MainActivity"
+            android:name="com.example.runner.MainActivity"
             android:exported="true" />
         <activity
-            android:name=".Splash"
+            android:name="com.example.runner.Splash"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -40,8 +40,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".MainActivity2" />
-        <activity android:name=".MainActivity3" />
+        <activity android:name="com.example.runner.MainActivity2" />
+        <activity android:name="com.example.runner.MainActivity3" />
     </application>
 
 </manifest>

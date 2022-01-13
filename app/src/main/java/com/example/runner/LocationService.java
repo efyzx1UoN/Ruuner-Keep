@@ -1,15 +1,13 @@
-package com.example.fuckinggps;
+package com.example.runner;
 
 import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -22,10 +20,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationCompat;
-import androidx.fragment.app.FragmentActivity;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.lifecycle.ViewModelStoreOwner;
+
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,10 +31,8 @@ public class LocationService extends Service {
     private String provider;
     private LocationListener locationListener;
     private final IBinder binder = new ServiceBinder();
-    public List<Location> locations = new ArrayList<>();
-    private final String CHANNEL_ID = "100";
-    private final int NOTIFICATION_ID = 001;
     private RecordsViewModel viewModel;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -55,6 +49,7 @@ public class LocationService extends Service {
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
+
     }
 
     @Nullable
@@ -73,67 +68,38 @@ public class LocationService extends Service {
             locationManager.removeUpdates(locationListener);
         }
         locationManager = null;
-        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        notificationManager.cancel(NOTIFICATION_ID);
         stopForeground(true);
     }
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public int onStartCommand(Intent intent, int flags, final int startId) {
-        int type = intent.getIntExtra("type",1);
-        Log.d("LocationService", "the create notification type is " + type + "----" + (type == 1 ? "true" : "false"));
-        if(type == 1) {
-            createNotificationChannel();
-        }else{
-            createErrorNotification();
-        }
-        new Thread(){
-            @Override
-            public void run() {
-                super.run();
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }.start();
+        createNotification();
         return super.onStartCommand(intent, flags, startId);
     }
 
-    private void createErrorNotification() {
-        Notification notification = new Notification.Builder(this).build();
-        startForeground(0, notification);
-    }
+
+
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private void createNotificationChannel() {
+    private void createNotification() {
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        // 通知渠道的id
+
         String id = "my_channel_01";
-        // 用户可以看到的通知渠道的名字.
+
         CharSequence name = getString(R.string.channel_name);
-//         用户可以看到的通知渠道的描述
+
         String description = getString(R.string.channel_description);
         int importance = NotificationManager.IMPORTANCE_HIGH;
         NotificationChannel mChannel = new NotificationChannel(id, name, importance);
-//         配置通知渠道的属性
+
         mChannel.setDescription(description);
-//         设置通知出现时的闪灯（如果 android 设备支持的话）
-        mChannel.enableLights(true); mChannel.setLightColor(Color.RED);
-//         设置通知出现时的震动（如果 android 设备支持的话）
-        mChannel.enableVibration(true);
-        mChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
-//         最后在notificationmanager中创建该通知渠道 //
+
         mNotificationManager.createNotificationChannel(mChannel);
 
-        // 为该通知设置一个id
-        int notifyID = 1;
-        // 通知渠道的id
         String CHANNEL_ID = "my_channel_01";
         // Create a notification and set the notification channel.
         Notification notification = new Notification.Builder(this)
-                .setContentTitle("New Message") .setContentText("You've received new messages.")
+                .setContentTitle("Runner Info") .setContentText("Runner is running")
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setChannelId(CHANNEL_ID)
                 .build();
@@ -161,7 +127,6 @@ public class LocationService extends Service {
                         Log.d("TAG",timeMill+","+location.getLongitude()+" "+
                                 location.getLatitude());
                         float v ;
-                        float m_speed=0;
                         if (!started) {
                             last_location = cur_location = location;
                             started=true;
@@ -178,7 +143,7 @@ public class LocationService extends Service {
                         double longitude = location.getLongitude();
                         double latitude = location.getLatitude();
                         last_location=cur_location;
-                        viewModel.insert(new Records(longitude,latitude,distance,speed,0,timeMill, 0));
+                        viewModel.insert(new Records(longitude,latitude,distance,speed,0,timeMill, 0,""));
                         Intent intent = new Intent();
                         Float b_distance=distance;
                         Float b_speed=speed;
@@ -194,23 +159,24 @@ public class LocationService extends Service {
                         1000, // minimum time interval between updates
                         5, // minimum distance between updates, in metres
                         locationListener);
-                Log.d("list_size",locations.size()+"");
+
             } catch (SecurityException e) {
                 Log.d("comp3018", e.toString());
             }
         }
         public void FinishRunning(){
             average_speed=distance/duration;
-            Log.d("a_speed",average_speed+"");
-            viewModel.insert(new Records(0.0,0.0,distance,average_speed,duration,timeMill, 0));
+            //Log.d("a_speed",average_speed+"");
+            viewModel.insert(new Records(0.0,0.0,distance,average_speed,duration,timeMill, 0,""));
             distance=0;
             speed=0;
             timeMill=0;
-            NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-            notificationManager.cancel(NOTIFICATION_ID);
+            if(locationListener!=null){
+                locationManager.removeUpdates(locationListener);
+            }
+
+            stopForeground(true);
         }
-//       // public void notification(){
-//            LocationService.this.addNotification();
-//        }
+
     }
 }

@@ -7,5 +7,5 @@ dependencyResolutionManagement {
 
     }
 }
-rootProject.name = "Fucking GPS"
+rootProject.name = "Runner"
 include ':app'

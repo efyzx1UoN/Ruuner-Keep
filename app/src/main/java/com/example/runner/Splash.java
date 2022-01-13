@@ -1,10 +1,12 @@
-package com.example.fuckinggps;
+package com.example.runner;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.WindowManager;
+
+
 
 public class Splash extends AppCompatActivity {
 

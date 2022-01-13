@@ -1,4 +1,4 @@
-package com.example.fuckinggps;
+package com.example.runner;
 
 import androidx.room.Dao;
 import androidx.room.Insert;

@@ -1,4 +1,4 @@
-package com.example.fuckinggps;
+package com.example.runner;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -16,6 +16,8 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+
 
 
 import java.text.DecimalFormat;
@@ -40,6 +42,9 @@ public class MainActivity3 extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main3);
         viewModel = new ViewModelProvider(this).get(RecordsViewModel.class);
+        initial();
+    }
+    private void initial(){
         List<Records> recordsList = viewModel.getAllRecords();
         recordsMap = new ConcurrentHashMap<>();
         // 分组
@@ -77,7 +82,45 @@ public class MainActivity3 extends AppCompatActivity {
             intent.putExtra("time", time);
             startActivity(intent);
         }));
+    }
+    private void back_activity(){
+        RecordsViewModel viewModel = new ViewModelProvider(this).get(RecordsViewModel.class);
+        List<Records> recordsList = viewModel.getAllNewRecords();
+        recordsMap = new ConcurrentHashMap<>();
+        // 分组
+        for (Records records : recordsList) {
+            Long time = records.getTime();
+            if (recordsMap.containsKey(time)) {
+                List<Records> list = Objects.requireNonNull(recordsMap.get(time));
+                list.add(records);
+            } else {
+                List<Records> list = new ArrayList<>();
+                list.add(records);
+                recordsMap.put(records.getTime(), list);
+            }
+        }
+        MapChecked(recordsMap);
+        List<LastRecords> totalRecordsList = new CopyOnWriteArrayList<>();
+        for (List<Records> list : recordsMap.values()) {
+            list.sort(Comparator.comparingInt(Records::getDuration));
 
+            totalRecordsList.add(new LastRecords(list.get(list.size() - 1)));
+        }
+        for (LastRecords lastRecords : totalRecordsList) {
+            if (lastRecords.lastRecord.getDistance() == 0) {
+                totalRecordsList.remove(lastRecords);
+            } else if (lastRecords.lastRecord.getDuration() == 0) {
+                totalRecordsList.remove(lastRecords);
+            }
+
+        }
+        recyclerView.setAdapter(new LastRecordsAdapter(viewModel, totalRecordsList, records -> {
+            Intent intent = new Intent(MainActivity3.this, MainActivity_detail.class);
+            long time = records.lastRecord.getTime();
+            String notes = records.lastRecord.getNotes();
+            intent.putExtra("time", time);
+            startActivity(intent);
+        }));
     }
 
     private void MapChecked(Map<Long, List<Records>> recordsMap) {
@@ -142,8 +185,8 @@ public class MainActivity3 extends AppCompatActivity {
             String d = new DecimalFormat("###,###,###").format(records.lastRecord.getDistance());
             String s = new DecimalFormat("###,###,###.#").format(records.lastRecord.getSpeed());
             holder.date.setText(dateStr);
-            holder.distance.setText("Distance :" + " " + d + " Meter");
-            holder.time.setText("Time :" + " " + t + " S");
+            holder.distance.setText("Distance :" + " " + d + " Meters");
+            holder.time.setText("Time :" + " " + t + " Seconds");
             holder.speed.setText("AverageSpeed :" + " " + s + " M/S");
             holder.bar.setRating(records.lastRecord.getRating());
         }
@@ -197,45 +240,7 @@ public class MainActivity3 extends AppCompatActivity {
     protected void onRestart() {
         super.onRestart();
         Log.d(TAG, "Restart");
-        RecordsViewModel viewModel = new ViewModelProvider(this).get(RecordsViewModel.class);
-        List<Records> recordsList = viewModel.getAllNewRecords();
-        recordsMap = new ConcurrentHashMap<>();
-        // 分组
-        for (Records records : recordsList) {
-            Long time = records.getTime();
-            if (recordsMap.containsKey(time)) {
-                List<Records> list = Objects.requireNonNull(recordsMap.get(time));
-                list.add(records);
-            } else {
-                List<Records> list = new ArrayList<>();
-                list.add(records);
-                recordsMap.put(records.getTime(), list);
-            }
-        }
-        MapChecked(recordsMap);
-        List<LastRecords> totalRecordsList = new CopyOnWriteArrayList<>();
-        for (List<Records> list : recordsMap.values()) {
-            list.sort(Comparator.comparingInt(Records::getDuration));
-
-            totalRecordsList.add(new LastRecords(list.get(list.size() - 1)));
-        }
-        for (LastRecords lastRecords : totalRecordsList) {
-            if (lastRecords.lastRecord.getDistance() == 0) {
-                totalRecordsList.remove(lastRecords);
-            } else if (lastRecords.lastRecord.getDuration() == 0) {
-                totalRecordsList.remove(lastRecords);
-            }
-
-        }
-
-        // recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
-        // recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(new LastRecordsAdapter(viewModel, totalRecordsList, records -> {
-            Intent intent = new Intent(MainActivity3.this, MainActivity_detail.class);
-            long time = records.lastRecord.getTime();
-            intent.putExtra("time", time);
-            startActivity(intent);
-        }));
+        back_activity();
     }
 
     @Override

@@ -1,4 +1,4 @@
-package com.example.fuckinggps;
+package com.example.runner;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
@@ -24,8 +24,9 @@ public class Records {
 
     private float rating;
 
+    private String notes=" ";
 
-    public Records(Double Longitude,Double Latitude,Float distance,Float speed,int duration, long time, float rating) {
+    public Records(Double Longitude,Double Latitude,Float distance,Float speed,int duration, long time, float rating,String notes) {
         this.Latitude=Latitude;
         this.Longitude=Longitude;
         this.distance=distance;
@@ -33,10 +34,19 @@ public class Records {
         this.duration=duration;
         this.time = time;
         this.rating = rating;
+        this.notes=notes;
     }
 
     public Records() {
 
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 
     public void setDistance(Float distance) {
