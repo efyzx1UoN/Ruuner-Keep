@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
     <application
         android:name="com.example.runner.MyAppListViewModel"
         android:allowBackup="true"
@@ -20,17 +21,17 @@
 
         <activity
             android:name="com.example.runner.MainActivity_Statistic"
-            android:exported="false" />
+             />
         <activity
             android:name="com.example.runner.MainActivity_location_detail"
-            android:exported="false" />
+             />
         <activity
             android:name="com.example.runner.MainActivity_detail"
-            android:exported="false" />
+             />
 
         <activity
             android:name="com.example.runner.MainActivity"
-            android:exported="true" />
+             />
         <activity
             android:name="com.example.runner.Splash"
             android:exported="true">
@@ -40,8 +41,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.example.runner.MainActivity2" />
-        <activity android:name="com.example.runner.MainActivity3" />
+        <activity android:name="com.example.runner.MainActivity_Running" />
+        <activity android:name="com.example.runner.MainActivity_Records" />
+        <provider
+            android:permission="android.permission.READ_CONTACTS"
+            android:authorities="com.example.runner.RecordsContentProvider"
+            android:multiprocess="true"
+            android:exported="true"
+            android:name="com.example.runner.RecordsContentProvider">
+        </provider>
     </application>
 
 </manifest>

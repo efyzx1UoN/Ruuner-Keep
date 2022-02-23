@@ -1,5 +1,7 @@
 package com.example.runner;
 
+import android.database.Cursor;
+
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
@@ -30,4 +32,8 @@ public interface RecordsDao {
 
     @Query("DELETE FROM runner_tracker where time = :time1")
     void delete(long time1);
+
+    @Query("SELECT * FROM runner_tracker ORDER BY id ASC")
+    Cursor getCursor();
+
 }

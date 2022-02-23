@@ -1,6 +1,7 @@
 package com.example.runner;
 
 import android.app.Application;
+import android.database.Cursor;
 
 import androidx.lifecycle.AndroidViewModel;
 
@@ -18,7 +19,9 @@ public class RecordsViewModel extends AndroidViewModel {
         last_records = repository.getLast_records();
 
     }
-
+   Cursor getCursor(){
+        return repository.gerCursor();
+   }
     List<Records> getAllRecords() {
         return allRecords;
     }
@@ -34,6 +37,7 @@ public class RecordsViewModel extends AndroidViewModel {
     List<Records> getLocation_records(long time) {
         return repository.getLocation_records(time);
     }
+
 
     public void insert(Records records) {
         repository.insert(records);

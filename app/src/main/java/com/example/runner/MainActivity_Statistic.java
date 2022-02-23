@@ -56,17 +56,19 @@ public class MainActivity_Statistic extends AppCompatActivity {
                 recordsMap.put(records.getTime(), list);
             }
         }
+        //filter data
         MapChecked(recordsMap);
         String date = dateCheck(timeMillis);
 
         List<TodayRecords> t_list= new CopyOnWriteArrayList<>();
-
+        //filter data
         Set<Map.Entry<Long, List<Records>>> entries = recordsMap.entrySet();
         for (Map.Entry<Long, List<Records>> entry: entries ) {
             if (dateCheck(entry.getKey()).equals(date)){
                  t_list.add(new TodayRecords(entry.getValue().get(entry.getValue().size()-1)));
             }
         }
+        //filter data
         for (TodayRecords todayRecords: t_list) {
             if(todayRecords.t_records.getDuration()==0){
                 t_list.remove(todayRecords);
@@ -74,10 +76,12 @@ public class MainActivity_Statistic extends AppCompatActivity {
                 t_list.remove(todayRecords);
             }
         }
+        //calculation
         for(TodayRecords todayRecords: t_list){
             t_distance += todayRecords.t_records.getDistance();
             t_f_distance=Math.max(t_f_distance,todayRecords.t_records.getDistance());
         }
+        //shown on screen
         if(t_distance==0){
             total_distance.setText("Total Distance of today is: " +0+" Meter");
             farthest_distance.setText("Longest Distance of today is: "+0+" Meter");
@@ -87,6 +91,7 @@ public class MainActivity_Statistic extends AppCompatActivity {
             total_distance.setText("Total Distance of today is: " +d+" Meter");
             farthest_distance.setText("Longest Distance of today is: "+f+" Meter");
         }
+        //shown by recycler view
         RecyclerView recyclerView = findViewById(R.id.recyclerView5);
         recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
         recyclerView.setLayoutManager(new LinearLayoutManager(this));

@@ -1,6 +1,7 @@
 package com.example.runner;
 
 import android.app.Application;
+import android.database.Cursor;
 
 import java.util.List;
 
@@ -28,7 +29,9 @@ public class MyRepository {
         allRecords = recordsDao.getAlphabetizedRecords();
         return allRecords;
     }
-
+    Cursor gerCursor(){
+        return  recordsDao.getCursor();
+    }
     List<Records> getLast_records() {
         return last_records;
     }

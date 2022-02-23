@@ -58,6 +58,9 @@ public class LocationService extends Service {
         return binder;
     }
 
+    /**
+     * release resources when app closed
+     */
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -81,6 +84,9 @@ public class LocationService extends Service {
 
 
     @RequiresApi(api = Build.VERSION_CODES.O)
+    /**
+     * create Notification
+     */
     private void createNotification() {
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -119,6 +125,11 @@ public class LocationService extends Service {
         public void StartTiming(){
             timeMill=System.currentTimeMillis();
         }
+
+        /**
+         * Calculates distance and speed then send sendBroadcast to running activity
+         * Insert data to database if location changed
+         */
         public void StartedRunning() {
             if(locationListener==null){
                 locationListener=new LocationListener() {
@@ -127,6 +138,7 @@ public class LocationService extends Service {
                         Log.d("TAG",timeMill+","+location.getLongitude()+" "+
                                 location.getLatitude());
                         float v ;
+
                         if (!started) {
                             last_location = cur_location = location;
                             started=true;
@@ -164,9 +176,16 @@ public class LocationService extends Service {
                 Log.d("comp3018", e.toString());
             }
         }
+
+        /**
+         * call this method when stop running
+         * get the duration from running activity then calculate average_speed
+         * Insert data to database
+         * release locationlistener
+         * stopforeground
+         */
         public void FinishRunning(){
             average_speed=distance/duration;
-            //Log.d("a_speed",average_speed+"");
             viewModel.insert(new Records(0.0,0.0,distance,average_speed,duration,timeMill, 0,""));
             distance=0;
             speed=0;

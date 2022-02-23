@@ -17,26 +17,30 @@ import java.util.List;
 
 public class MainActivity_detail extends AppCompatActivity {
     private long time;
-    private String notes;
     private Button detail;
     private Button delete;
     private Button edit;
     private RecordsViewModel viewModel;
     private TextView EditView;
+
     private List<Records> location_records;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_detail);
         EditView=findViewById(R.id.editNoteText);
+
         viewModel = new ViewModelProvider(this).get(RecordsViewModel.class);
         Intent intent =getIntent();
         time= intent.getLongExtra("time", 1);
         location_records = viewModel.getLocation_records(time);
+
         EditView.setText( location_records.get(location_records.size()-1).getNotes());
         setListener();
     }
+
     private void setListener(){
+        //jump to new page
         detail=findViewById(R.id.detail_buttonId);
         detail.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -51,10 +55,12 @@ public class MainActivity_detail extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String s = EditView.getText().toString();
+
                 location_records.get(location_records.size()-1).setNotes(s);
                 viewModel.update(location_records.get(location_records.size()-1));
             }
         });
+        //create a dialog when click delete button
         delete=findViewById(R.id.delete_buttonId);
         delete.setOnClickListener(new View.OnClickListener() {
             @Override

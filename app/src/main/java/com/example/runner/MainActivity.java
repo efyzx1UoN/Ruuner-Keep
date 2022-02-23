@@ -39,11 +39,14 @@ public class MainActivity extends AppCompatActivity {
         Log.d("MainActivity---onStop","onStop");
     }
 
+    /**
+     * jump to different activities
+     */
     public void SetListeners(){
         findViewById(R.id.button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, MainActivity2.class);
+                Intent intent = new Intent(MainActivity.this, MainActivity_Running.class);
                 startActivity(intent);
             }
         });
@@ -51,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.button2).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, MainActivity3.class);
+                Intent intent = new Intent(MainActivity.this, MainActivity_Records.class);
                 startActivity(intent);
             }
         });
@@ -63,6 +66,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    /**
+     * create a alert dialog if is the first time open  main_activity
+     */
     @Override
     protected void onStart()
     {
