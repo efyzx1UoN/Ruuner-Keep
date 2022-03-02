@@ -1,7 +1,8 @@
 # Ruuner-Keeper 
+Android原生APP
 
 Architecture: 
-Room+Service
+Room+Service+Podcast
 
 Requirements 
 Below is a list of requirements for the App.
